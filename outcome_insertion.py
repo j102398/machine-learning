@@ -2,7 +2,7 @@ import sqlite3
 import os
 
 #Locate the prediction file by specifying the gameweek
-gameweek = 36
+gameweek = 37
 pathToFile = f"C:\\Users\\joe\\PycharmProjects\\predictions\\predictions_archive\\predictions_gw{gameweek}.db"
 
 #
@@ -47,6 +47,7 @@ outcome_db_cursor = outcome_db_connection.cursor()
 def insert_columns():
     query = """
     CREATE TABLE IF NOT EXISTS outcome (
+        fixture TEXT PRIMARY KEY,
         home_points INTEGER,
         home_last_5_points INTEGER,
         home_goal_diff INTEGER,
@@ -69,10 +70,13 @@ def insert_columns():
         away_points_gained INTEGER,
         home_win INTEGER,
         away_win INTEGER,
+        draw INTEGER,
         home_possession REAL,
         away_possession REAL,
         home_progressive_passes_received INTEGER,
-        away_progressive_passes_received INTEGER
+        away_progressive_passes_received INTEGER,
+        home_games_played INTEGER,
+        away_games_played INTEGER
     )
     """
     try:
@@ -86,7 +90,6 @@ def retrieve_outcome(fixture):
     score = fixture_db_cursor.fetchone()
     return score
 
-
 def insert_outcome():
     # Retrieve all rows from the statistics table
     previous_db_cursor.execute('SELECT * FROM statistics')
@@ -96,88 +99,59 @@ def insert_outcome():
     # Iterate over each row
     for row in rows:
 
-        print(row)
-        try:
+        # Unpack row values into variables
+        (gameweek, home_team, away_team, previous_score, home_previous_xg, home_points,
+         home_last_5_points, home_goal_diff, home_progressive_carries, home_progressive_passes,
+         home_xg, away_previous_xg, away_points, away_last_5_points, away_goal_diff,
+         away_progressive_carries,
+         away_progressive_passes, away_xg, home_games_played, away_games_played, home_possession,
+         away_possession, home_progressive_passes_received, away_progressive_passes_received) = row
 
-            # Unpack row values into variables
-            (gameweek, home_team, away_team, previous_score, home_previous_xg, home_points,
-             home_last_5_points, home_goal_diff, home_progressive_carries, home_progressive_passes,
-             home_xg, away_previous_xg, away_points, away_last_5_points, away_goal_diff,
-             away_progressive_carries,
-             away_progressive_passes, away_xg, home_games_played, away_games_played, home_possession,
-             away_possession,home_progressive_passes_received,away_progressive_passes_received) = row
+        fixture = f"{home_team} vs {away_team}"
 
+        # As there has been a game played since the last game played total was updated, increment
+        away_games_played += 1
+        home_games_played += 1
 
+        # Lookup the fixture in the fixture db to determine outcome
+        fixture = home_team + " vs " + away_team
+        final_score = retrieve_outcome(fixture)
 
+        # Convert the tuple to string
+        final_score_str = ''.join(final_score)
 
+        # Split the scores up into home and away goals
+        previous_score_split = previous_score.split('–')
+        final_score_split = final_score_str.split('–')
 
-            #Lookup the fixture in the fixture db to determine outcome
-            fixture = home_team + " vs " + away_team
-            final_score = retrieve_outcome(fixture)
+        # Assign variables
+        away_previous_goals, home_previous_goals = previous_score_split
+        home_goals_in_game, away_goals_in_game = final_score_split
 
-            #Convert the tuple to string
-            final_score_str = ''.join(final_score)
+        # Work out how many points home team and away team gained
+        if home_goals_in_game > away_goals_in_game:
+            home_win = 1
+            away_win = 0
+            home_points_gained = 3
+            away_points_gained = 0
+            draw = 0
+        elif away_goals_in_game > home_goals_in_game:
+            home_win = 0
+            away_win = 1
+            away_points_gained = 3
+            home_points_gained = 0
+            draw = 0
+        else:
+            home_win = 0
+            away_win = 0
+            draw = 1
+            home_points_gained = 1
+            away_points_gained = 1
 
-            #Split the scores up into home and away goals
-            previous_score_split = previous_score.split('–')
-            final_score_split = final_score_str.split('–')
-
-            #Assign variables
-            away_previous_goals,home_previous_goals = previous_score_split
-            home_goals_in_game,away_goals_in_game = final_score_split
-
-            #Work out how many points home team and away team gained
-
-            if home_goals_in_game > away_goals_in_game:
-                home_win = 1
-                away_win = 0
-                home_points_gained = 3
-                away_points_gained = 0
-            elif away_points_gained > home_points_gained:
-                home_win = 0
-                away_win = 1
-                away_points_gained = 3
-                home_points_gained = 0
-            else:
-                home_win = 0
-                away_win = 0
-                home_points_gained = 1
-                away_points_gained = 1
-
-
-            #Insert all the new data
-            query = """
-                INSERT INTO outcome (
-                    home_points,
-                    home_last_5_points,
-                    home_goal_diff,
-                    home_progressive_carries,
-                    home_progressive_passes,
-                    home_xg,
-                    home_previous_xg,
-                    away_previous_goals,
-                    home_previous_goals,
-                    away_points,
-                    away_last_5_points,
-                    away_goal_diff,
-                    away_progressive_carries,
-                    away_progressive_passes,
-                    away_xg,
-                    away_previous_xg,
-                    home_goals_in_game,
-                    away_goals_in_game,
-                    home_points_gained,
-                    away_points_gained,
-                    home_win,
-                    away_win,
-                    home_possession,
-                    away_possession,
-                    home_progressive_passes_received,
-                    away_progressive_passes_received
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?,?,?,?,?,?)
-            """
-
-            outcome_db_cursor.execute(query, (
+        # Insert all the new data
+        query = """
+            INSERT INTO outcome (
+                fixture,
                 home_points,
                 home_last_5_points,
                 home_goal_diff,
@@ -200,20 +174,56 @@ def insert_outcome():
                 away_points_gained,
                 home_win,
                 away_win,
+                draw,
                 home_possession,
                 away_possession,
                 home_progressive_passes_received,
-                away_progressive_passes_received
+                away_progressive_passes_received,
+                home_games_played,
+                away_games_played
+            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+        """
+
+        try:
+            outcome_db_cursor.execute(query, (
+                fixture,
+                home_points,
+                home_last_5_points,
+                home_goal_diff,
+                home_progressive_carries,
+                home_progressive_passes,
+                home_xg,
+                home_previous_xg,
+                away_previous_goals,
+                home_previous_goals,
+                away_points,
+                away_last_5_points,
+                away_goal_diff,
+                away_progressive_carries,
+                away_progressive_passes,
+                away_xg,
+                away_previous_xg,
+                home_goals_in_game,
+                away_goals_in_game,
+                home_points_gained,
+                away_points_gained,
+                home_win,
+                away_win,
+                draw,
+                home_possession,
+                away_possession,
+                home_progressive_passes_received,
+                away_progressive_passes_received,
+                home_games_played,
+                away_games_played
             ))
-        except:
-            print('exception raised for',row)
-            pass
+        except Exception as e:
+            print(f"Exception raised for {fixture}: {e}")
+
     outcome_db_connection.commit()
+
+
 
 
 insert_columns()
 insert_outcome()
-
-outcome_db_cursor.execute('SELECT home_previous_xg,home_points_gained FROM outcome')
-a= outcome_db_cursor.fetchall()
-print(a)
