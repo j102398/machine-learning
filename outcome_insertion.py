@@ -76,7 +76,8 @@ def insert_columns():
         home_progressive_passes_received INTEGER,
         away_progressive_passes_received INTEGER,
         home_games_played INTEGER,
-        away_games_played INTEGER
+        away_games_played INTEGER,
+        home_win_draw_or_loss INTEGER
     )
     """
     try:
@@ -130,21 +131,35 @@ def insert_outcome():
 
         # Work out how many points home team and away team gained
         if home_goals_in_game > away_goals_in_game:
+            #Binary outputs for home or away win or draaw
             home_win = 1
             away_win = 0
+            draw = 0
+            #This variable is 0 for home loss, 1 for home draw, 2 for home win
+            home_win_draw_or_loss = 2
+
             home_points_gained = 3
             away_points_gained = 0
-            draw = 0
+
         elif away_goals_in_game > home_goals_in_game:
+            #Binary outputs for home or away win or draaw
             home_win = 0
             away_win = 1
+            draw = 0
+            # This variable is 0 for home loss, 1 for home draw, 2 for home win
+            home_win_draw_or_loss = 0
+
             away_points_gained = 3
             home_points_gained = 0
-            draw = 0
         else:
+            # Binary outputs for home or away win or draaw
             home_win = 0
             away_win = 0
             draw = 1
+
+            # This variable is 0 for home loss, 1 for home draw, 2 for home win
+            home_win_draw_or_loss = 1
+
             home_points_gained = 1
             away_points_gained = 1
 
@@ -180,8 +195,9 @@ def insert_outcome():
                 home_progressive_passes_received,
                 away_progressive_passes_received,
                 home_games_played,
-                away_games_played
-            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                away_games_played,
+                home_win_draw_or_loss
+            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
         """
 
         try:
@@ -215,15 +231,21 @@ def insert_outcome():
                 home_progressive_passes_received,
                 away_progressive_passes_received,
                 home_games_played,
-                away_games_played
+                away_games_played,
+                home_win_draw_or_loss
             ))
-        except Exception as e:
-            print(f"Exception raised for {fixture}: {e}")
+        except Exception as error:
+            print(f"Exception raised for {fixture}: {error}")
 
     outcome_db_connection.commit()
 
 
-
-
-insert_columns()
-insert_outcome()
+#Check we aren't overwriting information before executing!
+outcome_db_cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name=?", ('outcome',))
+check  = outcome_db_cursor.fetchone()
+if check:
+    print("Execution cancelled. Outcome already inserted")
+else:
+    print("Execution Continued. Outcome not inserted prior.")
+    insert_columns()
+    insert_outcome()
