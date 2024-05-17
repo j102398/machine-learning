@@ -2,7 +2,7 @@ import sqlite3
 import os
 
 #Locate the prediction file by specifying the gameweek
-gameweek = 37
+gameweek = 38
 pathToFile = f"C:\\Users\\joe\\PycharmProjects\\predictions\\predictions_archive\\predictions_gw{gameweek}.db"
 
 #
@@ -77,7 +77,9 @@ def insert_columns():
         away_progressive_passes_received INTEGER,
         home_games_played INTEGER,
         away_games_played INTEGER,
-        home_win_draw_or_loss INTEGER
+        home_win_draw_or_loss INTEGER,
+        home_goals INTEGER,
+        away_goals INTEGER
     )
     """
     try:
@@ -106,7 +108,7 @@ def insert_outcome():
          home_xg, away_previous_xg, away_points, away_last_5_points, away_goal_diff,
          away_progressive_carries,
          away_progressive_passes, away_xg, home_games_played, away_games_played, home_possession,
-         away_possession, home_progressive_passes_received, away_progressive_passes_received) = row
+         away_possession, home_progressive_passes_received, away_progressive_passes_received,home_goals,away_goals) = row
 
         fixture = f"{home_team} vs {away_team}"
 
@@ -196,8 +198,10 @@ def insert_outcome():
                 away_progressive_passes_received,
                 home_games_played,
                 away_games_played,
-                home_win_draw_or_loss
-            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                home_win_draw_or_loss,
+                home_goals,
+                away_goals
+            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
         """
 
         try:
@@ -232,7 +236,9 @@ def insert_outcome():
                 away_progressive_passes_received,
                 home_games_played,
                 away_games_played,
-                home_win_draw_or_loss
+                home_win_draw_or_loss,
+                home_goals,
+                away_goals
             ))
         except Exception as error:
             print(f"Exception raised for {fixture}: {error}")
