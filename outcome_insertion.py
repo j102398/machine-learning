@@ -73,8 +73,6 @@ def insert_columns():
         draw INTEGER,
         home_possession REAL,
         away_possession REAL,
-        home_progressive_passes_received INTEGER,
-        away_progressive_passes_received INTEGER,
         home_games_played INTEGER,
         away_games_played INTEGER,
         home_win_draw_or_loss INTEGER,
@@ -101,14 +99,15 @@ def insert_outcome():
 
     # Iterate over each row
     for row in rows:
-
+        print(f"row len : {len(row)}")
+        print(f"Row : {row}")
         # Unpack row values into variables
         (gameweek, home_team, away_team, previous_score, home_previous_xg, home_points,
          home_last_5_points, home_goal_diff, home_progressive_carries, home_progressive_passes,
          home_xg, away_previous_xg, away_points, away_last_5_points, away_goal_diff,
          away_progressive_carries,
          away_progressive_passes, away_xg, home_games_played, away_games_played, home_possession,
-         away_possession, home_progressive_passes_received, away_progressive_passes_received,home_goals,away_goals) = row
+         away_possession,home_goals,away_goals) = row
 
         fixture = f"{home_team} vs {away_team}"
 
@@ -194,14 +193,12 @@ def insert_outcome():
                 draw,
                 home_possession,
                 away_possession,
-                home_progressive_passes_received,
-                away_progressive_passes_received,
                 home_games_played,
                 away_games_played,
                 home_win_draw_or_loss,
                 home_goals,
                 away_goals
-            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
         """
 
         try:
@@ -232,8 +229,6 @@ def insert_outcome():
                 draw,
                 home_possession,
                 away_possession,
-                home_progressive_passes_received,
-                away_progressive_passes_received,
                 home_games_played,
                 away_games_played,
                 home_win_draw_or_loss,
