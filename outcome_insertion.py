@@ -79,7 +79,9 @@ def insert_columns():
         home_goals INTEGER,
         away_goals INTEGER,
         home_xg_against REAL,
-        away_xg_against REAL
+        away_xg_against REAL,
+        home_goals_against INTEGER,
+        away_goals_against INTEGER
     )
     """
     try:
@@ -109,7 +111,7 @@ def insert_outcome():
          home_xg, away_previous_xg, away_points, away_last_5_points, away_goal_diff,
          away_progressive_carries,
          away_progressive_passes, away_xg, home_games_played, away_games_played, home_possession,
-         away_possession,home_goals,away_goals,home_xg_against,away_xg_against) = row
+         away_possession,home_goals,away_goals,home_xg_against,away_xg_against,home_goals_against,away_goals_against) = row
 
         fixture = f"{home_team} vs {away_team}"
 
@@ -201,8 +203,10 @@ def insert_outcome():
                 home_goals,
                 away_goals,
                 home_xg_against,
-                away_xg_against
-            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                away_xg_against,
+                home_goals_against,
+                away_goals_against
+            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
         """
 
         try:
@@ -239,7 +243,9 @@ def insert_outcome():
                 home_goals,
                 away_goals,
                 home_xg_against,
-                away_xg_against
+                away_xg_against,
+                home_goals_against,
+                away_goals_against
             ))
         except Exception as error:
             print(f"Exception raised for {fixture}: {error}")
